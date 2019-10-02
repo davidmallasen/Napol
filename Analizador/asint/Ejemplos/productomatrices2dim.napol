@@ -1,0 +1,38 @@
+int[2:2] c;
+int[2:2] a;
+int[2:2] b;
+
+a[0:0] = 9;
+a[0:1] = 4;
+a[1:0] = 3;
+a[1:1] = 2;
+
+b[0:0] = 8;
+b[0:1] = 2;
+b[1:0] = 3;
+b[1:1] = 1;
+
+c[0:0] = 0;
+c[0:1] = 0;
+c[1:0] = 0;
+c[1:1] = 0;
+
+proc multiplicacionMatrices(int[2:2] a; int[2:2] b;){
+    int fila;
+    int columna;
+    int aux;
+    for(fila = 0; fila < 2; fila = fila + 1;) {  
+        for (columna = 0; columna < 2; columna = columna + 1;) {  
+            for (aux = 0; aux < 2; aux = aux + 1;) {  
+                c[fila:columna] = c[fila:columna] + a[fila:aux] * b[aux:columna];  
+            }    
+        }  
+    }  
+}
+
+
+proc main(){
+    do multiplicacionMatrices(a, b);
+}
+
+do main();

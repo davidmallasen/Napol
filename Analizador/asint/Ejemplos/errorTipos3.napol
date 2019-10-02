@@ -1,0 +1,47 @@
+bool encontrado;
+encontrado = false;
+
+int[1] posicion;
+posicion[0] = -1;   #Variable por referencia#
+
+int numeroBuscado;
+numeroBuscado = 5;
+
+int[10] vector;
+vector[0] = 2;
+vector[1] = 1;
+vector[2] = 3;
+vector[3] = 4;
+vector[4] = 5;
+vector[5] = 2;
+vector[6] = 1;
+vector[7] = 7;
+vector[8] = 3;
+vector[9] = 1;
+
+
+proc vacio(int[10] vector;){
+    
+}
+
+fun buscar(int[5] vector; int num; int[1] posicion;) returns bool{
+    int i;
+    i = 0;
+    bool localizado;
+    localizado = false;
+    while(i < 10 && localizado == false){
+        if(vector[i] == num){
+            localizado = true;
+            posicion[0] = i;
+        }
+        i = i + 1;
+    }
+    do vacio(vector, i);
+    return localizado;
+}
+
+proc main(){
+    encontrado = buscar(vector, numeroBuscado, posicion);
+}
+
+do main();

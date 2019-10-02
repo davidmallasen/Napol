@@ -1,0 +1,35 @@
+int[10] vector;
+vector[0] = 2;
+vector[1] = 1;
+vector[2] = 3;
+vector[3] = 4;
+vector[4] = 5;
+vector[5] = 2;
+vector[6] = 1;
+vector[7] = 7;
+vector[8] = 3;
+vector[9] = 1;
+int tam;
+tam = 10;
+
+proc swap(int[10] v; int i; int j;){
+    int aux;
+    aux=v[i];
+    v[i]=v[j];
+    v[j]=aux;
+}
+
+proc ordenar(int[10] v;){
+    int i;
+    int j;
+    for(i=0;i<(tam-1);i=i+1;){
+         for(j=i+1;j<tam;j=j+1;){
+            if(v[i] > v[j]){
+                do swap(v, i, j);
+            }
+        }
+    }
+}
+
+
+do ordenar(vector);

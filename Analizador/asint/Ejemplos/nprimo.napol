@@ -1,0 +1,43 @@
+int nprimo;
+#Calculo del n-esimo numero primo, siendo el primero el 2#
+int n;
+n = 10;
+
+fun esPrimo(int num;) returns bool{
+    int i;
+    i = 2;
+    bool esprimo;
+    esprimo=true;
+
+    while(i < num && esprimo){
+        int resto;
+        resto = num - i*(num/i);
+        if(resto == 0){
+            esprimo = false;
+        }
+        i = i + 1;
+    }
+    return esprimo;
+}
+
+fun nPrimo()returns int{
+    int numeroprimoactual;
+    numeroprimoactual = 0;
+
+    int i;  #Numero por el que vamos comprobando#
+    i = 1;
+    while(numeroprimoactual != n){
+        i = i + 1;
+        if(esPrimo(i)){
+            numeroprimoactual = numeroprimoactual + 1;
+        }
+    }
+    return i;
+}
+
+
+proc main(){
+    nprimo = nPrimo();  
+}
+
+do main();

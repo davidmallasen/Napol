@@ -1,0 +1,16 @@
+int n;
+fun factorial(int n;)returns int{
+    int ret;
+    if(n == 0){
+        ret = 1;
+    }else {
+        ret = n * factorial(n-1);
+    }
+    return ret;
+}
+
+proc main(){
+    n = factorial(5);
+}
+
+do main();

@@ -1,0 +1,198 @@
+package asint;
+
+import java.util.LinkedList;
+import java.util.AbstractMap.SimpleEntry;
+
+import java_cup.runtime.*;
+
+import alex.AnalizadorLexicoNapol;
+
+import errors.GestionErroresNapol;
+
+import asint.ast.Programa;
+import asint.ast.BloqueSentencias;
+import asint.ast.expresiones.*;
+import asint.ast.expresiones.operadores.*;
+import asint.ast.sentencias.*;
+import asint.ast.tipos.*;
+
+scan with {: return getScanner().next_token(); :};
+
+parser code {: 
+   private GestionErroresNapol errores;
+   public void syntax_error(Symbol sym) {
+     errores.errorSintactico(sym);
+   }
+:};
+
+init with {: 
+   errores = new GestionErroresNapol();
+   AnalizadorLexicoNapol alex = (AnalizadorLexicoNapol)getScanner();
+   alex.fijaGestionErrores(errores);
+:};
+
+
+terminal     
+    FUN, PROC, RETS, RET, DO, 
+    IF, ELSE, WHILE, FOR,
+    MAS, MENOS, MUL, DIV,
+    PAP, PCIERRE, CAP, CCIERRE, LLAP, LLCIERRE,
+    COMA, DOSPUNT, PUNTOCOMA,
+    IGUAL, II, MEI, MAI, ME, MA, DIS,
+    AND, OR, NEG;
+
+terminal String INT, BOOL, ID, TRUE, FALSE, ENT;
+
+
+non terminal Programa PROG;
+non terminal LinkedList<Sentencia> SENT_PROG;
+non terminal BloqueSentencias BSENT;
+non terminal LinkedList<Sentencia> SENT;
+
+non terminal SDeclar SDECLAR;
+non terminal LinkedList<SDeclar> LDECLAR;
+
+non terminal TipoDato TIPODATO;
+non terminal TipoDato TIPODATO_SIMPLE;
+
+non terminal LinkedList<EEnt> ARRAYD;
+non terminal LinkedList<EEnt> ARRAYDR;
+non terminal LinkedList<E> ARRAY;
+non terminal LinkedList<E> ARRAYR;
+
+non terminal SAsig SASIG;
+non terminal SFund SFUND;
+non terminal SProcd SPROCD;
+non terminal SProc SPROC;
+
+non terminal LinkedList<E> IDS;
+non terminal LinkedList<E> IDSR;
+
+non terminal SIf SIF;
+non terminal SWhile SWHILE;
+non terminal ASFor SFOR;
+
+non terminal E E0;
+non terminal E E1;
+non terminal E E2;
+non terminal E E3;
+non terminal E E4;
+non terminal E E5;
+
+non terminal EEnt EENT;
+
+start with PROG;
+
+//Programa principal
+PROG ::= SENT_PROG:sp SPROC:p{:RESULT = new Programa(sp, p);:};
+
+//Sentencias de programa. Estara compuesto por una lista de sentencias.
+//Estas seran las unidades independientes que aparezcan en un archivo Napol.
+SENT_PROG ::= SDECLAR:a SENT_PROG:sp {:RESULT = sp; RESULT.addFirst(a);:}
+    | SASIG:a SENT_PROG:sp {:RESULT = sp; RESULT.addFirst(a);:}
+    | SFUND:a SENT_PROG:sp {:RESULT = sp; RESULT.addFirst(a);:}
+    | SPROCD:a SENT_PROG:sp {:RESULT = sp; RESULT.addFirst(a);:}
+    | {:RESULT = new LinkedList<>();:};
+
+//Bloque de sentencias
+BSENT ::= SENT:s {:RESULT = new BloqueSentencias(s);:};
+
+//Lista de sentencias de bloque. Estara compuesto por una lista de sentencias.
+SENT ::= SDECLAR:a SENT:s {:RESULT = s; RESULT.addFirst(a);:} 
+    | SASIG:a SENT:s {:RESULT = s; RESULT.addFirst(a);:} 
+    | SIF:a SENT:s {:RESULT = s; RESULT.addFirst(a);:} 
+    | SWHILE:a SENT:s {:RESULT = s; RESULT.addFirst(a);:}
+    | SFOR:a SENT:s {:RESULT = s; RESULT.addFirst(a);:} 
+    | SPROC:a SENT:s {:RESULT = s; RESULT.addFirst(a);:} 
+    | {:RESULT = new LinkedList<>();:};
+
+//Declaracion de variables
+SDECLAR ::= TIPODATO:t ID:id PUNTOCOMA {:RESULT = new SDeclar(t, id, idleft, idright);:};
+
+//Lista de declaraciones
+LDECLAR ::= SDECLAR:d LDECLAR:ds {:RESULT = ds; RESULT.addFirst(d);:}
+	| {:RESULT = new LinkedList<>();:};
+
+//Representa un tipo de nuestro programa. Incluye arrays.
+TIPODATO ::= INT:i ARRAYD:is {:RESULT = new TipoDato(i, is);:}
+    | BOOL:b ARRAYD:is {:RESULT = new TipoDato(b, is);:};
+
+//Representa una lista de los tamanyos de las dimensiones de un array separados por dos puntos dados como enteros
+    //Utilizado en las declaraciones de variables de varias dimensiones
+ARRAYD ::= CAP EENT:i ARRAYDR:is CCIERRE {:RESULT = is; RESULT.addFirst(i);:}
+	| {:RESULT = new LinkedList<>();:};
+
+ARRAYDR ::= DOSPUNT EENT:i ARRAYDR:is {:RESULT = is; RESULT.addFirst(i);:}
+    | {:RESULT = new LinkedList<>();:};
+
+//Representa un tipo simple de nuestro programa.
+TIPODATO_SIMPLE ::= INT:i {:RESULT = new TipoDato(i, new LinkedList<>());:}
+    | BOOL:b {:RESULT = new TipoDato(b, new LinkedList<>());:};
+
+//Representa una lista de los tamanyos de las dimensiones de un array separados por dos puntos dados como expresiones enteras cualesquiera
+ARRAY ::= CAP E0:i ARRAYR:is CCIERRE {:RESULT = is; RESULT.addFirst(i);:}
+	| {:RESULT = new LinkedList<>();:};
+
+ARRAYR ::= DOSPUNT E0:i ARRAYR:is {:RESULT = is; RESULT.addFirst(i);:}
+    | {:RESULT = new LinkedList<>();:};
+
+//Asignacion de variables
+SASIG ::= ID:id ARRAY:is IGUAL:i E0:e PUNTOCOMA {:RESULT = new SAsig(id, is, e, idleft, idright, ileft, iright);:};
+
+//Declaracion de una funcion
+SFUND ::= FUN ID:nombre PAP LDECLAR:ld PCIERRE RETS TIPODATO_SIMPLE:tr 
+	LLAP BSENT:s RET E0:e PUNTOCOMA LLCIERRE {:RESULT = new SFund(nombre, ld, tr, s, e, nombreleft, nombreright, eleft, eright);:};
+
+//Declaracion de un procedimiento
+SPROCD ::= PROC ID:nombre PAP LDECLAR:ld PCIERRE LLAP BSENT:s LLCIERRE {:RESULT = new SProcd(nombre, ld, s, nombreleft, nombreright);:};
+
+//Llamada a un procedimiento
+SPROC ::= DO ID:nombre PAP IDS:es PCIERRE PUNTOCOMA {:RESULT = new SProc(nombre, es, nombreleft, nombreright);:};
+
+//Representa una lista de identificadores separados por comas
+IDS ::= E0:e IDSR:es {:RESULT = es; RESULT.addFirst(e);:} 
+	| {:RESULT = new LinkedList<>();:};
+
+IDSR ::= COMA E0:e IDSR:es {:RESULT = es; RESULT.addFirst(e);:}
+    | {:RESULT = new LinkedList<>();:};
+
+//Instruccion if
+SIF ::= IF PAP E0:b PCIERRE LLAP BSENT:s1 LLCIERRE ELSE LLAP BSENT:s2 LLCIERRE {:RESULT = new SIfElse(b, s1, s2, bleft, bright);:} //IfElse de dos ramas
+    | IF PAP E0:b PCIERRE LLAP BSENT:s1 LLCIERRE {:RESULT = new SIf(b, s1, bleft, bright);:};  //If de una rama
+
+//Instruccion while
+SWHILE ::= WHILE PAP E0:b PCIERRE LLAP BSENT:s LLCIERRE {:RESULT = new SWhile(b, s, bleft, bright);:};
+
+//Instruccion for cuya variable iteradora se indica al inicio sin asignar
+SFOR ::= FOR PAP ID:i PUNTOCOMA E0:b PUNTOCOMA SASIG:asig1 PCIERRE LLAP BSENT:s LLCIERRE {:RESULT = new SForId(i, b, asig1, s, ileft, iright, bleft, bright, asig1left, asig1right);:}
+    //Instruccion for cuya variable iteradora se asigna al principio con un valor
+    | FOR PAP SASIG:asig1 E0:b PUNTOCOMA SASIG:asig2 PCIERRE LLAP BSENT:s LLCIERRE {:RESULT = new SForAsig(asig1, b, asig2, s, asig1left, asig1right, bleft, bright, asig2left, asig2right);:}; 
+
+//Expresiones
+E0 ::= E1:a AND E0:b 				{:RESULT = new And(a, b, aleft, aright, bleft, bright);:} 
+    | E1:a OR E0:b 					{:RESULT = new Or(a, b, aleft, aright, bleft, bright);:}
+    | MENOS E1:a 					{:RESULT = new IntNeg(a, aleft, aright);:}
+    | E1:a 							{:RESULT = a;:};
+E1 ::= E1:a MAS E2:b 				{:RESULT = new Mas(a, b, aleft, aright, bleft, bright);:}
+    | E1:a MENOS E2:b 				{:RESULT = new Menos(a, b, aleft, aright, bleft, bright);:} 
+    | E2:a 							{:RESULT = a;:};
+E2 ::= E2:a II E3:b 				{:RESULT = new Ii(a, b, aleft, aright, bleft, bright);:}
+    | E2:a DIS E3:b 				{:RESULT = new Dis(a, b, aleft, aright, bleft, bright);:}
+    | E2:a MUL E3:b 				{:RESULT = new Mul(a, b, aleft, aright, bleft, bright);:}
+    | E2:a DIV E3:b 				{:RESULT = new Div(a, b, aleft, aright, bleft, bright);:}
+    | E3:a 							{:RESULT = a;:};
+E3 ::= E4:a ME E4:b 				{:RESULT = new Me(a, b, aleft, aright, bleft, bright);:} 
+    | E4:a MA E4:b 					{:RESULT = new Ma(a, b, aleft, aright, bleft, bright);:} 
+    | E4:a MEI E4:b 				{:RESULT = new Mei(a, b, aleft, aright, bleft, bright);:} 
+    | E4:a MAI E4:b 				{:RESULT = new Mai(a, b, aleft, aright, bleft, bright);:} 
+    | E4:a 							{:RESULT = a;:};
+E4 ::= NEG E4:a 					{:RESULT = new Neg(a, aleft, aright);:}
+    | E5:a 							{:RESULT = a;:};
+E5 ::= TRUE:t 						{:RESULT = new ETrue(t);:}
+    | FALSE:f 						{:RESULT = new EFalse(f);:}
+    | ENT:en 						{:RESULT = new EEnt(en);:}
+    | ID:id ARRAY:is 				{:RESULT = new EId(id, is, idleft, idright);:}
+    | ID:nombre PAP IDS:es PCIERRE 	{:RESULT = new EFun(nombre, es, nombreleft, nombreright);:} //Llamadas a funciones
+    | PAP E0:e PCIERRE 				{:RESULT = e;:};
+
+EENT ::= ENT:en {:RESULT = new EEnt(en);:};

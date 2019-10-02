@@ -1,0 +1,53 @@
+int[10] vector;
+vector[0] = 2;
+vector[1] = 1;
+vector[2] = 3;
+vector[3] = 4;
+vector[4] = 5;
+vector[5] = 2;
+vector[6] = 1;
+vector[7] = 7;
+vector[8] = 3;
+vector[9] = 1;
+int tam;
+tam = 10;
+
+proc quicksort(int[10] vector; int izquierdo; int derecho;) {
+    int i;
+    i = izquierdo;
+    int j;
+    j = derecho;
+    int aux;
+
+    int pivote;
+    pivote = vector[(izquierdo + derecho) / 2];
+
+    #Particion#
+
+    while (i <= j) {
+        while (vector[i] < pivote){
+            i = i + 1;
+        }
+        while (vector[j] > pivote){
+            j = j - 1;
+        }
+        if (i <= j) {
+            aux = vector[i];
+            vector[i] = vector[j];
+            vector[j] = aux;
+            i = i + 1;
+            j = j - 1;
+        }
+    }
+
+    #Recursion#
+
+    if (izquierdo < j){
+        do quicksort(vector, izquierdo, j);
+    }
+    if (i < derecho){
+        do quicksort(vector, i, derecho);
+    }
+}
+
+do quicksort(vector, 0, 9);
