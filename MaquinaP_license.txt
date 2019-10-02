@@ -1,0 +1,2 @@
+(c) Ricardo Peña, Jun. 2014, Universidad Complutense de Madrid
+License     :  LGPL
