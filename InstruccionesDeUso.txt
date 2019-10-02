@@ -1,0 +1,23 @@
+Instrucciones de uso del compilador para el lenguaje Napol así como la compilación de su compilador:
+-----------------------------------------------------------------------------------------------------
+
+1)Compilar el compilador
+Para compilar el compilador, será necesario desplazarse hasta la siguiente carpeta: "./Analizador/asint/"
+Una vez aquí solo tendremos que ejecutar los comandos:
+	make clean
+	make
+los cuales borrarán los archivos generados por compilaciones anteriores y compilarán de nuevo, respectivamente.
+
+2)Compilar ficheros .napol
+Una vez realizado el paso anterior, nos dispondremos a compilar programas Napol. Para ello, en esta misma ruta, ejecutaremos el comando:
+sh Napol.sh nombrePrograma.napol
+donde nombrePrograma.napol será el programa que queramos ejecutar, que deberá estar en la carpeta de Ejemplos (si usamos este sh).
+Una vez hecho esto se nos generará un archivo input.txt con el código máquina para la máquina-p en esta misma ubicación.
+
+3)Ejecutar código maquina-p
+Para ejecutar este último código máquina volver a la carpeta principal y acceder a "./MaquinaP/".
+Arrancar el interprete Haskell para la máquina-P con el comando:
+	ghci Main
+y presionar enter. Una vez arrancado el interpete ingresar el comando:
+	:main /rutaDondeTengamosLaCarpetaDelProyecto/Analizador/asint/input.txt
+compilandose así el código máquina.
